@@ -24,9 +24,14 @@
       <el-table-column prop="wmc" label="方法数量 (WMC)" width="150" align="center" />
       <el-table-column prop="nof" label="属性数量 (NOF)" width="150" align="center" />
       <el-table-column prop="dit" label="继承深度 (DIT)" width="150" align="center" />
-      <el-table-column prop="cbo" label="类间耦合度 (CBO)" width="180" align="center">
+      <el-table-column prop="cbo" label="类间耦合度 (CBO)" width="150" align="center">
         <template #default="scope">
           <el-tag :type="scope.row.cbo > 3 ? 'warning' : 'info'">{{ scope.row.cbo }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="noc" label="子类数量 (NOC)" width="150" align="center">
+        <template #default="scope">
+          <el-tag :type="scope.row.noc > 0 ? 'success' : 'info'">{{ scope.row.noc }}</el-tag>
         </template>
       </el-table-column>
     </el-table>
@@ -52,16 +57,19 @@ const renderRadarChart = (containerRef, data) => {
     return maxVal > 0 ? maxVal * 1.2 : defaultMax
   }
 
+  // 指标中加入队友的 NOC
   const indicators = [
     { name: '方法数 (WMC)', max: getSafeMax('wmc', 10) },
     { name: '属性数 (NOF)', max: getSafeMax('nof', 10) },
     { name: '继承深度 (DIT)', max: getSafeMax('dit', 5) },
-    { name: '耦合度 (CBO)', max: getSafeMax('cbo', 10) }
+    { name: '耦合度 (CBO)', max: getSafeMax('cbo', 10) },
+    { name: '子类数量 (NOC)', max: getSafeMax('noc', 5) }
   ]
 
+  // 数据映射加入 NOC
   const seriesData = data.map(item => ({
     name: item.className,
-    value: [item.wmc, item.nof, item.dit, item.cbo]
+    value: [item.wmc, item.nof, item.dit, item.cbo, item.noc]
   }))
 
   myChart.setOption({
@@ -81,3 +89,20 @@ const handleOomUploadSuccess = (response) => {
 
 const handleUploadError = () => ElMessage.error('文件上传或解析失败，请检查后端服务。')
 </script>
+
+<style scoped>
+.upload-area {
+  max-width: 600px;
+  margin: 40px auto;
+  text-align: center;
+}
+
+h3 {
+  color: #606266;
+  margin-bottom: 20px;
+}
+
+.table-area {
+  margin-top: 40px;
+}
+</style>

@@ -27,6 +27,8 @@
       <el-table-column prop="dit" label="DIT" width="80" align="center" />
       <el-table-column prop="rfc" label="RFC" width="80" align="center" />
       <el-table-column prop="cbo" label="CBO" width="80" align="center" />
+      <el-table-column prop="lcom" label="LCOM" width="80" align="center" />
+      <el-table-column prop="noc" label="NOC" width="80" align="center" />
     </el-table>
 
     <div class="pagination-container">

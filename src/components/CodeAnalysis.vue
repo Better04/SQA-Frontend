@@ -42,7 +42,9 @@
       <el-table-column prop="nof" label="字段数量 (NOF)" width="120" align="center" />
       <el-table-column prop="dit" label="继承深度 (DIT)" width="120" align="center" />
       <el-table-column prop="rfc" label="响应集 (RFC)" width="120" align="center" />
-      <el-table-column prop="cbo" label="类间耦合度 (CBO)" width="150" align="center" />
+      <el-table-column prop="cbo" label="类间耦合度 (CBO)" width="140" align="center" />
+      <el-table-column prop="lcom" label="缺乏内聚度 (LCOM)" width="150" align="center" />
+      <el-table-column prop="noc" label="子类数量 (NOC)" width="130" align="center" />
     </el-table>
     <div ref="codeChartRef" style="width: 100%; height: 400px; margin-top: 30px;"></div>
   </div>
@@ -66,21 +68,25 @@ const renderRadarChart = (containerRef, data) => {
     return maxVal > 0 ? maxVal * 1.2 : defaultMax
   }
 
+  // 雷达图加入 LCOM 和 NOC 维度
   const indicators = [
     { name: '方法数 (WMC)', max: getSafeMax('wmc', 10) },
     { name: '字段数 (NOF)', max: getSafeMax('nof', 10) },
     { name: '继承深度 (DIT)', max: getSafeMax('dit', 5) },
     { name: '响应集 (RFC)', max: getSafeMax('rfc', 20) },
-    { name: '耦合度 (CBO)', max: getSafeMax('cbo', 10) }
+    { name: '耦合度 (CBO)', max: getSafeMax('cbo', 10) },
+    { name: '缺乏内聚度 (LCOM)', max: getSafeMax('lcom', 10) },
+    { name: '子类数量 (NOC)', max: getSafeMax('noc', 5) }
   ]
 
+  // 数据映射加入 lcom 和 noc
   const seriesData = data.map(item => ({
     name: item.className,
-    value: [item.wmc, item.nof, item.dit, item.rfc, item.cbo]
+    value: [item.wmc, item.nof, item.dit, item.rfc, item.cbo, item.lcom, item.noc]
   }))
 
   myChart.setOption({
-    title: { text: '源代码各模块指标对比', left: 'center' },
+    title: { text: '源代码各模块指标对比 (全面CK模型)', left: 'center' },
     tooltip: { trigger: 'item' },
     legend: { bottom: 0, type: 'scroll', data: data.map(item => item.className) },
     radar: { indicator: indicators, shape: 'circle' },

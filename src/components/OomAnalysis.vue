@@ -57,26 +57,48 @@ const renderRadarChart = (containerRef, data) => {
     return maxVal > 0 ? maxVal * 1.2 : defaultMax
   }
 
-  // 指标中加入队友的 NOC
+  // 雷达图维度：CBO, NOO, NOC, NOA, DIT, CS
   const indicators = [
-    { name: '方法数 (WMC)', max: getSafeMax('wmc', 10) },
-    { name: '属性数 (NOF)', max: getSafeMax('nof', 10) },
-    { name: '继承深度 (DIT)', max: getSafeMax('dit', 5) },
-    { name: '耦合度 (CBO)', max: getSafeMax('cbo', 10) },
-    { name: '子类数量 (NOC)', max: getSafeMax('noc', 5) }
+    { name: 'CBO', max: getSafeMax('cbo', 10) },
+    { name: 'NOO', max: getSafeMax('noo', 10) },
+    { name: 'NOC', max: getSafeMax('noc', 5) },
+    { name: 'NOA', max: getSafeMax('noa', 10) },
+    { name: 'DIT', max: getSafeMax('dit', 5) },
+    { name: 'CS', max: getSafeMax('cs', 20) }
   ]
 
-  // 数据映射加入 NOC
+  // 根据 6 个指标的总和，计算综合排名前 10 的类名，其余的类默认隐藏以防图形杂乱
+  const top10Names = [...data]
+    .sort((a, b) => {
+      const sumB = (b.cbo || 0) + (b.noo || 0) + (b.noc || 0) + (b.noa || 0) + (b.dit || 0) + (b.cs || 0)
+      const sumA = (a.cbo || 0) + (a.noo || 0) + (a.noc || 0) + (a.noa || 0) + (a.dit || 0) + (a.cs || 0)
+      return sumB - sumA
+    })
+    .slice(0, 10)
+    .map(item => item.className)
+
+  const legendSelected = {}
+  data.forEach(item => {
+    legendSelected[item.className] = top10Names.includes(item.className)
+  })
+
+  // 数据映射：将每个组件类单独提取，利用Echarts特性以不同颜色绘制雷达范围网
   const seriesData = data.map(item => ({
     name: item.className,
-    value: [item.wmc, item.nof, item.dit, item.cbo, item.noc]
+    value: [item.cbo, item.noo, item.noc, item.noa, item.dit, item.cs]
   }))
 
   myChart.setOption({
     title: { text: '设计阶段各组件指标对比', left: 'center' },
     tooltip: { trigger: 'item' },
-    legend: { bottom: 0, type: 'scroll', data: data.map(item => item.className) },
-    radar: { indicator: indicators, shape: 'circle' },
+    legend: { 
+      bottom: 0, 
+      type: 'scroll', 
+      data: data.map(item => item.className),
+      selected: legendSelected, // 绑定选中状态
+      inactiveColor: '#909399'  // 提高未选中图例的颜色明度
+    },
+    radar: { indicator: indicators, shape: 'polygon' },
     series: [{ name: '类度量对比', type: 'radar', data: seriesData }]
   }, true)
 }

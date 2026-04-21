@@ -59,7 +59,7 @@
         :total="totalCount"
         layout="prev, pager, next, jumper"
         background
-        small
+        size="small"
       />
     </div>
   </div>

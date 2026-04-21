@@ -6,12 +6,15 @@
     <div v-else class="common-layout">
       <el-container>
         <el-header class="header">
-          <h2>软件度量自动化分析平台</h2>
+          <div class="brand-block">
+            <div class="brand-kicker">Software Quality Intelligence</div>
+            <h2>软件度量自动化分析平台</h2>
+          </div>
         </el-header>
         
         <el-main class="main-content">
-          <el-card>
-            <el-tabs v-model="activeTab" @tab-click="handleTabClick">
+          <el-card class="main-shell" shadow="never">
+            <el-tabs v-model="activeTab" class="main-tabs" @tab-click="handleTabClick">
               
               <el-tab-pane label="Java 源代码分析" name="code">
                 <CodeAnalysis />
@@ -69,22 +72,103 @@ const handleTabClick = (tab) => {
 
 /* 页面顶部样式 */
 .header {
-  background-color: #2c3e50;
-  color: white;
+  background:
+    radial-gradient(circle at top left, rgba(90, 166, 255, 0.22), transparent 32%),
+    linear-gradient(135deg, #17304a 0%, #284765 45%, #20354d 100%);
+  color: #f8fbff;
   display: flex;
   align-items: center;
-  height: 60px;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  min-height: 92px;
+  padding: 0 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 18px 40px rgba(18, 35, 53, 0.16);
 }
 
 /* 主内容区样式 */
 .main-content { 
-  padding: 20px; 
-  min-height: calc(100vh - 60px); 
+  padding: 28px 20px 36px;
+  min-height: calc(100vh - 92px); 
+}
+
+.brand-block {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.brand-kicker {
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgba(238, 245, 255, 0.72);
+}
+
+.brand-block h2 {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.main-shell {
+  border: 1px solid rgba(163, 180, 201, 0.24);
+  border-radius: 28px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 250, 255, 0.94));
+  box-shadow: 0 24px 60px rgba(31, 48, 78, 0.12);
 }
 
 /* 深度调整 Element Plus 内部样式（可选） */
+:deep(.el-card__body) {
+  padding: 24px 26px 28px;
+}
+
+:deep(.main-tabs .el-tabs__header) {
+  margin: 0;
+}
+
+:deep(.main-tabs .el-tabs__nav-wrap::after) {
+  height: 1px;
+  background: linear-gradient(90deg, rgba(59, 110, 167, 0.28), rgba(59, 110, 167, 0.06));
+}
+
+:deep(.main-tabs .el-tabs__item) {
+  height: 50px;
+  padding: 0 18px;
+  font-size: 17px;
+  font-weight: 700;
+  color: #5d6c80;
+}
+
+:deep(.main-tabs .el-tabs__item.is-active) {
+  color: #1a5fb4;
+}
+
+:deep(.main-tabs .el-tabs__active-bar) {
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #2d7ff9, #4f9cff);
+}
+
 :deep(.el-tabs__content) {
-  padding: 20px 0;
+  padding: 28px 0 8px;
+}
+
+@media (max-width: 768px) {
+  .header {
+    min-height: 84px;
+    padding: 0 16px;
+  }
+
+  .main-content {
+    padding: 18px 12px 24px;
+  }
+
+  .brand-block h2 {
+    font-size: 1.5rem;
+  }
+
+  :deep(.el-card__body) {
+    padding: 18px 16px 22px;
+  }
 }
 </style>

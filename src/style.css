@@ -1,5 +1,18 @@
-body, html {
-    margin: 0;
-    padding: 0;
-    background-color: #f3f4f6; /* 给页面一个浅灰色的高级感背景 */
-  }
+html, body, #app {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family: "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #203047;
+  background:
+    radial-gradient(circle at top left, rgba(125, 173, 255, 0.12), transparent 28%),
+    radial-gradient(circle at right center, rgba(77, 171, 247, 0.1), transparent 24%),
+    linear-gradient(180deg, #eef3f9 0%, #f7f9fc 52%, #eef4fb 100%);
+}
+
+* {
+  box-sizing: border-box;
+}

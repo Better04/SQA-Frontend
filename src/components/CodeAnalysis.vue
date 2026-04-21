@@ -68,21 +68,22 @@ const renderRadarChart = (containerRef, data) => {
     return maxVal > 0 ? maxVal * 1.2 : defaultMax
   }
 
-  // 雷达图维度：CBO, NOO, NOC, NOA, DIT, CS (满足设计图要求)
+  // 雷达图维度：CBO, NOO, NOC, NOA, DIT, CS, LCOM（七维）
   const indicators = [
     { name: 'CBO', max: getSafeMax('cbo', 10) },
     { name: 'NOO', max: getSafeMax('noo', 10) },
     { name: 'NOC', max: getSafeMax('noc', 5) },
     { name: 'NOA', max: getSafeMax('noa', 10) },
     { name: 'DIT', max: getSafeMax('dit', 5) },
-    { name: 'CS', max: getSafeMax('cs', 20) }
+    { name: 'CS',  max: getSafeMax('cs', 20) },
+    { name: 'LCOM', max: getSafeMax('lcom', 20) }
   ]
 
   // 根据 6 个指标的总和，计算综合排名前 10 的类名，其余的类默认隐藏以防图形杂乱
   const top10Names = [...data]
     .sort((a, b) => {
-      const sumB = (b.cbo || 0) + (b.noo || 0) + (b.noc || 0) + (b.noa || 0) + (b.dit || 0) + (b.cs || 0)
-      const sumA = (a.cbo || 0) + (a.noo || 0) + (a.noc || 0) + (a.noa || 0) + (a.dit || 0) + (a.cs || 0)
+      const sumB = (b.cbo || 0) + (b.noo || 0) + (b.noc || 0) + (b.noa || 0) + (b.dit || 0) + (b.cs || 0) + (b.lcom || 0)
+      const sumA = (a.cbo || 0) + (a.noo || 0) + (a.noc || 0) + (a.noa || 0) + (a.dit || 0) + (a.cs || 0) + (a.lcom || 0)
       return sumB - sumA
     })
     .slice(0, 10)
@@ -96,7 +97,7 @@ const renderRadarChart = (containerRef, data) => {
   // 数据映射：将每个类单独作为一条数据提取并填充到雷达图中，Echarts会自动分配不同颜色区分各类别
   const seriesData = data.map(item => ({
     name: item.className,
-    value: [item.cbo, item.noo, item.noc, item.noa, item.dit, item.cs]
+    value: [item.cbo, item.noo, item.noc, item.noa, item.dit, item.cs, item.lcom]
   }))
 
   myChart.setOption({

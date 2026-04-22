@@ -87,13 +87,13 @@ const renderRadarChart = (containerRef, data) => {
 
   // 雷达图维度：CBO, NOO, NOC, NOA, DIT, CS, LCOM（七维）
   const indicators = [
-    { name: 'CBO', max: getSafeMax('cbo', 10) },
-    { name: 'NOO', max: getSafeMax('noo', 10) },
-    { name: 'NOC', max: getSafeMax('noc', 5) },
-    { name: 'NOA', max: getSafeMax('noa', 10) },
-    { name: 'DIT', max: getSafeMax('dit', 5) },
-    { name: 'CS',  max: getSafeMax('cs', 20) },
-    { name: 'LCOM', max: getSafeMax('lcom', 20) }
+    { name: 'CBO', max: getSafeMax('cbo', 8) },
+    { name: 'NOO', max: getSafeMax('noo', 8) },
+    { name: 'NOC', max: getSafeMax('noc', 4) },
+    { name: 'NOA', max: getSafeMax('noa', 8) },
+    { name: 'DIT', max: getSafeMax('dit', 4) },
+    { name: 'CS',  max: getSafeMax('cs', 15) },
+    { name: 'LCOM', max: getSafeMax('lcom', 15) }
   ]
 
   // 根据 6 个指标的总和，计算综合排名前 10 的类名，其余的类默认隐藏以防图形杂乱

@@ -1,5 +1,5 @@
 <template>
-  <section class="analysis-section hero-panel winui-acrylic" :class="{ 'is-empty': tableData.length === 0 }">
+  <section class="analysis-section hero-panel winui-acrylic is-empty" >
     <div class="section-title" :class="{ 'text-center': tableData.length === 0 }">
       <span class="section-step">STEP 01</span>
       <h3>上传 Java 项目源代码</h3>

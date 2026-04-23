@@ -13,7 +13,7 @@
         </el-header>
         
         <el-main class="main-content">
-          <el-card class="main-shell" shadow="never">
+          
             <el-tabs v-model="activeTab" class="main-tabs" @tab-click="handleTabClick">
               
               <el-tab-pane label="Java 源代码分析" name="code">
@@ -29,7 +29,7 @@
               </el-tab-pane>
 
             </el-tabs>
-          </el-card>
+          
         </el-main>
       </el-container>
     </div>

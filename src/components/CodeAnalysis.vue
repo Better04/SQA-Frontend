@@ -36,7 +36,6 @@
       </div>
     </div>
     
-    
     <div v-if="tableData.length === 0" class="metrics-intro winui-acrylic-sub">
       <div class="intro-image">
         <img src="../assets/photo2.jpg" alt="软件度量概念图" />
@@ -47,14 +46,10 @@
         <p>
           CK 度量（Chidamber & Kemerer Metrics Suite）是 1994 年由 Shyam Chidamber 与 Chris Kemerer 提出、专门针对面向对象软件设计的经典类级别复杂度与质量度量体系。
           <br>
-          它弥补了传统代码行数（LOC）等指标无法捕捉继承、多态、耦合、内聚等 OO 特性的缺陷，是业界应用最广、学术验证最充分的面向对象度量标准之一
-          <br>
-          这不仅有助于开发团队快速定位系统中的“高风险代码”与“坏味道”，能有效指导代码重构、降低后期维护成本，更是保障大型软件系统稳定性与可扩展性的基石。
+          它弥补了传统代码行数（LOC）等指标无法捕捉继承、多态、耦合、内聚等 OO 特性的缺陷，是业界应用最广、学术验证最充分的面向对象度量标准之一。
         </p>
       </div>
     </div>
-
-
 
   <section v-if="tableData.length > 0" class="analysis-section results-panel winui-acrylic">
     <div class="section-title compact">
@@ -88,6 +83,17 @@
       <el-table-column prop="cbo" label="类间耦合度 (CBO)" width="140" align="center" />
       <el-table-column prop="lcom" label="缺乏内聚度 (LCOM)" width="150" align="center" />
       <el-table-column prop="noc" label="子类数量 (NOC)" width="130" align="center" />
+      
+      <el-table-column prop="overrideMetric" label="重写指标" width="120" align="center">
+        <template #default="scope">
+          {{ scope.row.overrideMetric != null ? scope.row.overrideMetric.toFixed(2) : '0.00' }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="overloadMetric" label="重载指标" width="120" align="center">
+        <template #default="scope">
+          {{ scope.row.overloadMetric != null ? scope.row.overloadMetric.toFixed(2) : '0.00' }}
+        </template>
+      </el-table-column>
     </el-table>
 
     <div class="chart-card">

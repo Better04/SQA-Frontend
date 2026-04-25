@@ -47,6 +47,17 @@
       <el-table-column prop="cbo" label="CBO" width="72" align="center" />
       <el-table-column prop="lcom" label="LCOM" width="80" align="center" />
       <el-table-column prop="noc" label="NOC" width="72" align="center" />
+      
+      <el-table-column prop="overrideMetric" label="重写指标" width="85" align="center">
+        <template #default="scope">
+          {{ scope.row.overrideMetric != null ? scope.row.overrideMetric.toFixed(2) : '0.00' }}
+        </template>
+      </el-table-column>
+      <el-table-column prop="overloadMetric" label="重载指标" width="85" align="center">
+        <template #default="scope">
+          {{ scope.row.overloadMetric != null ? scope.row.overloadMetric.toFixed(2) : '0.00' }}
+        </template>
+      </el-table-column>
     </el-table>
 
     <div class="pagination-bar">

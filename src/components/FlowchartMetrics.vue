@@ -1,10 +1,11 @@
 <template>
-  <section class="analysis-section hero-panel flowchart-theme">
-    <div class="section-title">
+  <section v-if="!hasResult" class="analysis-section hero-panel flowchart-theme is-empty">
+    <div class="section-title text-center">
       <span class="section-step">STEP 01</span>
-      <h3>上传程序流程图 (Draw.io)</h3>
-      <p>通过解析流程图文件，进行严谨的结构化度量与复杂度分析。</p>
+      <h3>上传程序流程图进行结构化分析</h3>
+      <p>导入 Draw.io (.xml / .drawio) 文件后，系统将自动解析节点和连线并计算逻辑复杂度。</p>
     </div>
+    
     <el-upload
       class="upload-demo upload-panel"
       drag
@@ -13,46 +14,69 @@
       accept=".xml,.drawio"
     >
       <el-icon class="el-icon--upload upload-icon"><document /></el-icon>
-      <div class="el-upload__text">请拖拽或点击上传流程图 <em>(Draw.io的.xml或.drawio格式)</em></div>
+      <div class="el-upload__text">将流程图文件拖到此处，或 <em>点击上传</em></div>
       <template #tip>
-        <div class="el-upload__tip">解析计算节点与逻辑圈复杂度</div>
+        <div class="el-upload__tip text-center">纯前端极速解析计算节点与逻辑圈复杂度</div>
       </template>
     </el-upload>
   </section>
 
-  <section v-if="hasResult" class="analysis-section results-panel flowchart-theme">
-    <div class="section-title compact">
-      <span class="section-step">STEP 02</span>
-      <h3>结构化度量与复杂度分析结果</h3>
-      <p>自动提取图形网络拓扑结构，洞察代码复杂度和测试难点。</p>
+  <section v-else class="analysis-section results-panel flowchart-theme">
+    <div class="section-title compact" style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <span class="section-step">STEP 02</span>
+        <h3>程序结构度量与复杂度分析结果</h3>
+        <p>自动提取图形网络拓扑结构，洞察代码复杂度和测试难点。</p>
+      </div>
+      <!-- 将按钮包裹在 el-upload 中，直接唤起文件选择器，避免跳转回初始页面 -->
+      <el-upload
+        :auto-upload="false"
+        :on-change="handleFileChange"
+        accept=".xml,.drawio"
+        :show-file-list="false"
+        class="inline-upload"
+      >
+        <el-button type="primary" plain size="large">
+          <el-icon style="margin-right: 6px;"><RefreshRight /></el-icon> 重新上传流程图
+        </el-button>
+      </el-upload>
     </div>
 
-    <!-- 指标卡片 -->
-    <div class="metrics-cards">
-      <div class="metric-card">
-        <div class="metric-value">{{ metrics.nodes }}</div>
-        <div class="metric-label">总节点数 (N)</div>
+    <!-- 核心指标卡片：统一设置 fp-card 以保证第一行对称，背景颜色在 css 中调淡 -->
+    <div class="dashboard-cards">
+      <div class="data-card fp-card">
+        <div class="card-title">总节点数 (N)</div>
+        <div class="card-value highlight">{{ metrics.nodes }}</div>
+        <div class="sub-text">有效控制节点</div>
       </div>
-      <div class="metric-card">
-        <div class="metric-value">{{ metrics.edges }}</div>
-        <div class="metric-label">总连线数 (E)</div>
+      <div class="data-card fp-card">
+        <div class="card-title">总连线数 (E)</div>
+        <div class="card-value highlight">{{ metrics.edges }}</div>
+        <div class="sub-text">节点间的跳转边</div>
       </div>
-      <div class="metric-card highlight" :class="{'danger': metrics.cyclomaticComplexity > 10}">
-        <div class="metric-value">{{ metrics.cyclomaticComplexity }}</div>
-        <div class="metric-label">圈复杂度 (V(G))</div>
-        <div class="metric-desc" v-if="metrics.cyclomaticComplexity > 10">复杂度过高，建议重构</div>
+      <div class="data-card fp-card" :class="{'danger-card': metrics.cyclomaticComplexity > 10}">
+        <div class="card-title">圈复杂度 (V(G))</div>
+        <div class="card-value highlight">{{ metrics.cyclomaticComplexity }}</div>
+        <div class="sub-text" v-if="metrics.cyclomaticComplexity > 10" style="color:#ef4444; font-weight:600;">复杂度过高，测试极难，强烈建议重构</div>
+        <div class="sub-text" v-else style="color:#0ea5e9; font-weight:600;">结构清晰，复杂度在安全范围</div>
       </div>
-      <div class="metric-card">
-        <div class="metric-value">{{ metrics.predicates }}</div>
-        <div class="metric-label">判定节点数 (P)</div>
+    </div>
+
+    <el-divider>详细结构度量指标明细</el-divider>
+
+    <!-- 次要指标卡片 -->
+    <div class="factors-grid">
+      <div class="factor-item">
+        <span class="factor-label">判定节点数 (P) <span class="tip">出度≥2的分支节点</span></span>
+        <span class="factor-value">{{ metrics.predicates }}</span>
       </div>
-      <div class="metric-card">
-        <div class="metric-value">{{ metrics.maxFanIn }}</div>
-        <div class="metric-label">最大扇入 (Max Fan-in)</div>
+      <div class="factor-item">
+        <span class="factor-label">最大扇出 (Max Fan-out) <span class="tip">最复杂的条件散发程度</span></span>
+        <span class="factor-value">{{ metrics.maxFanOut }}</span>
       </div>
-      <div class="metric-card">
-        <div class="metric-value">{{ metrics.maxFanOut }}</div>
-        <div class="metric-label">最大扇出 (Max Fan-out)</div>
+      <div class="factor-item">
+        <span class="factor-label">最大扇入 (Max Fan-in) <span class="tip">代码块被复用或跳转的最高次数</span></span>
+        <span class="factor-value">{{ metrics.maxFanIn }}</span>
       </div>
     </div>
   </section>
@@ -61,7 +85,7 @@
 <script setup>
 import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Document } from '@element-plus/icons-vue'
+import { Document, RefreshRight } from '@element-plus/icons-vue'
 
 const hasResult = ref(false)
 const metrics = ref({
@@ -82,7 +106,7 @@ const handleFileChange = (uploadFile) => {
     try {
       const xmlString = e.target.result
       parseDrawioXml(xmlString)
-      ElMessage.success('流程图解析成功！')
+      ElMessage.success('流程图解析成功！计算完成。')
     } catch (error) {
       console.error(error)
       ElMessage.error('解析失败，请确保上传的是有效的 Draw.io 格式文件')
@@ -95,24 +119,20 @@ const parseDrawioXml = (xmlString) => {
   const parser = new DOMParser()
   const xmlDoc = parser.parseFromString(xmlString, "text/xml")
   
-  // 查找所有的 mxCell
   const cells = xmlDoc.getElementsByTagName('mxCell')
   
   let nodesCount = 0
   let edgesCount = 0
   
-  // 记录出入度
   const outDegreeMap = {}
   const inDegreeMap = {}
   
-  // 第一遍：统计有效节点
   const validNodeIds = new Set()
   for (let i = 0; i < cells.length; i++) {
     const cell = cells[i]
     const id = cell.getAttribute('id')
     const vertex = cell.getAttribute('vertex')
     
-    // id 为 0 和 1 的通常是底层画板 default root 元素，不视为业务节点
     if (vertex === "1" && id !== "0" && id !== "1") {
       validNodeIds.add(id)
       outDegreeMap[id] = 0
@@ -121,7 +141,6 @@ const parseDrawioXml = (xmlString) => {
   }
   nodesCount = validNodeIds.size
   
-  // 第二遍：统计连线与出入度
   for (let i = 0; i < cells.length; i++) {
     const cell = cells[i]
     const edge = cell.getAttribute('edge')
@@ -130,7 +149,6 @@ const parseDrawioXml = (xmlString) => {
       const source = cell.getAttribute('source')
       const target = cell.getAttribute('target')
       
-      // 只有连接了有效节点的线才算有效边
       if (source && target && validNodeIds.has(source) && validNodeIds.has(target)) {
         edgesCount++
         outDegreeMap[source]++
@@ -139,7 +157,6 @@ const parseDrawioXml = (xmlString) => {
     }
   }
   
-  // 统计其他指标
   let predicatesCount = 0
   let maxFanIn = 0
   let maxFanOut = 0
@@ -153,14 +170,12 @@ const parseDrawioXml = (xmlString) => {
     if (outD > maxFanOut) maxFanOut = outD
   }
   
-  // McCabe 圈复杂度：V(G) = E - N + 2
-  // 对于具有 p 个连通分支的图，V(G) = E - N + 2p，通常单流程图 p=1
   const cyclomaticComplexity = edgesCount - nodesCount + 2
   
   metrics.value = {
     nodes: nodesCount,
     edges: edgesCount,
-    cyclomaticComplexity: cyclomaticComplexity > 0 ? cyclomaticComplexity : 1, // 最少是1
+    cyclomaticComplexity: cyclomaticComplexity > 0 ? cyclomaticComplexity : 1,
     predicates: predicatesCount,
     maxFanIn: maxFanIn,
     maxFanOut: maxFanOut
@@ -170,157 +185,145 @@ const parseDrawioXml = (xmlString) => {
 </script>
 
 <style scoped>
-.analysis-section + .analysis-section {
-  margin-top: 28px;
-}
-
-.hero-panel,
-.results-panel {
-  border: 1px solid rgba(133, 172, 230, 0.22);
+/* 继承和其他页面一致的漂亮UI玻璃态风格 */
+.hero-panel, .results-panel {
+  border: 1px solid rgba(255, 255, 255, 0.8);
   border-radius: 24px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(246, 249, 255, 0.94));
-  box-shadow: 0 18px 42px rgba(39, 74, 147, 0.08);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  box-shadow: 0 12px 36px rgba(31, 48, 78, 0.08);
 }
 
-.hero-panel {
-  padding: 28px;
+.hero-panel { padding: 28px; }
+.hero-panel.is-empty { 
+  max-width: 900px; 
+  margin: 40px auto; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
+  padding: 40px 48px; 
 }
 
-.results-panel {
-  padding: 26px;
+.text-center { 
+  text-align: center; 
+  display: flex; 
+  flex-direction: column; 
+  align-items: center; 
 }
 
-.section-title {
-  margin-bottom: 20px;
-}
+.results-panel { padding: 26px; }
 
-.section-title.compact {
-  margin-bottom: 18px;
+.section-title { margin-bottom: 24px; }
+.section-step { 
+  display: inline-flex; 
+  align-items: center; 
+  padding: 6px 12px; 
+  border-radius: 999px; 
+  background: rgba(16, 185, 129, 0.12); /* 绿色主题色 */
+  color: #059669; 
+  font-size: 12px; 
+  font-weight: 800; 
+  letter-spacing: 0.16em; 
 }
+.section-title h3 { margin: 14px 0 8px; color: #1a2e46; font-size: 2rem; }
+.section-title p { margin: 0; color: #5f7086; font-size: 15px; }
 
-.section-step {
-  display: inline-flex;
-  align-items: center;
-  padding: 6px 12px;
-  border-radius: 999px;
-  background: rgba(61, 116, 230, 0.12);
-  color: #2f65d6;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.16em;
+.upload-panel { width: 100%; max-width: 650px; margin-top: 10px; }
+.upload-icon { font-size: 70px; color: #10b981; }
+
+.dashboard-cards { display: flex; gap: 20px; margin: 24px 0; }
+.data-card { 
+  flex: 1; 
+  padding: 24px 20px; 
+  border-radius: 16px; 
+  text-align: center; 
+  background: white; 
+  border: 1px solid rgba(0,0,0,0.06); 
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-
-.section-title h3 {
-  margin: 14px 0 8px;
-  color: #202b3d;
-  font-size: 2rem;
-  line-height: 1.2;
-}
-
-.section-title p {
-  margin: 0;
-  color: #5c6c85;
-  font-size: 15px;
-}
-
-.upload-panel {
-  width: 100%;
-}
-
-.upload-icon {
-  font-size: 70px;
-  color: #4b83f0;
-}
-
-.metrics-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 20px;
-  margin-top: 24px;
-}
-
-.metric-card {
-  padding: 24px 20px;
-  border-radius: 18px;
-  background: #ffffff;
-  border: 1px solid rgba(193, 212, 245, 0.4);
-  text-align: center;
-  box-shadow: 0 4px 12px rgba(45, 87, 184, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.metric-card:hover {
+.data-card:hover {
   transform: translateY(-4px);
-  box-shadow: 0 12px 24px rgba(45, 87, 184, 0.08);
+  box-shadow: 0 16px 32px rgba(0,0,0,0.12);
+}
+.card-title { font-size: 14px; color: #64748b; margin-bottom: 8px; font-weight: 600;}
+.card-value { font-size: 36px; font-weight: 800; color: #0f172a; }
+.card-value.highlight { color: #0ea5e9; font-size: 42px; }
+
+.fp-card {
+  /* 极浅的蓝绿色渐变，保证三张卡片都有底色但不会太突兀 */
+  background: linear-gradient(180deg, #ffffff, #f4fafe);
+  border-color: #e0f2fe;
+}
+.fp-card.danger-card {
+  background: linear-gradient(180deg, #ffffff, #fef2f2);
+  border-color: #fecaca;
+}
+.fp-card.danger-card .card-value.highlight {
+  color: #ef4444;
 }
 
-.metric-card.highlight {
-  background: linear-gradient(135deg, #e8f0ff, #f3f7ff);
-  border-color: #a3c4f5;
-}
+.sub-text { font-size: 13px; color: #94a3b8; font-weight: normal; margin-top: 8px;}
 
-.metric-card.highlight.danger {
-  background: linear-gradient(135deg, #fff0f0, #fff7f7);
-  border-color: #f5a3a3;
+/* 明细因子卡片 */
+.factors-grid { 
+  display: grid; 
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 16px; 
+  padding: 10px 0; 
 }
-
-.metric-value {
-  font-size: 36px;
-  font-weight: 800;
-  color: #2b56a8;
-  margin-bottom: 8px;
+.factor-item { 
+  display: flex; 
+  flex-direction: column;
+  justify-content: center; 
+  align-items: center; 
+  background: #fff; 
+  padding: 16px; 
+  border-radius: 12px; 
+  border: 1px solid #e2e8f0; 
+  box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+  transition: transform 0.2s, box-shadow 0.2s;
 }
-
-.metric-card.highlight.danger .metric-value {
-  color: #d63333;
-}
-
-.metric-label {
-  font-size: 14px;
-  color: #647a96;
-  font-weight: 500;
-}
-
-.metric-desc {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #d63333;
-  background: rgba(214, 51, 51, 0.1);
-  padding: 2px 8px;
-  border-radius: 10px;
-  display: inline-block;
-}
-
-:deep(.el-upload-dragger) {
-  min-height: 250px;
-  border: 1.5px dashed rgba(75, 131, 240, 0.56);
-  border-radius: 22px;
-  background:
-    radial-gradient(circle at top, rgba(120, 163, 250, 0.12), transparent 52%),
-    linear-gradient(180deg, rgba(250, 252, 255, 0.98), rgba(242, 245, 250, 0.98));
-  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-
-:deep(.el-upload-dragger:hover) {
+.factor-item:hover {
   transform: translateY(-2px);
-  border-color: #3b74e6;
-  box-shadow: 0 18px 36px rgba(59, 116, 230, 0.14);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
 }
-
-:deep(.el-upload__text) {
-  margin-top: 10px;
-  color: #556c8f;
-  font-size: 17px;
+.factor-label { 
+  font-size: 14px; 
+  color: #475569; 
+  font-weight: 600;
+  margin-bottom: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-
-:deep(.el-upload__text em) {
-  color: #2b61d6;
-  font-style: normal;
+.factor-label .tip {
+  font-size: 12px;
+  color: #94a3b8;
+  font-weight: normal;
+  margin-top: 4px;
+}
+.factor-value {
+  font-size: 24px;
   font-weight: 700;
+  color: #334155;
+  background: #f1f5f9;
+  padding: 4px 20px;
+  border-radius: 8px;
 }
 
-:deep(.el-upload__tip) {
-  color: #6a82a6;
-  font-size: 14px;
+:deep(.el-upload-dragger) { 
+  min-height: 250px; 
+  border: 1.5px dashed rgba(16, 185, 129, 0.4); 
+  border-radius: 22px; 
+  background: rgba(255,255,255,0.5); 
+}
+:deep(.el-upload-dragger:hover) { 
+  border-color: #10b981; 
+  background: rgba(255,255,255,0.8); 
+}
+:deep(.el-divider__text) {
+  color: #64748b;
+  font-weight: bold;
 }
 </style>

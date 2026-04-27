@@ -49,6 +49,13 @@
                 <span>规模度量历史记录</span>
               </el-menu-item>
             </el-menu-item-group>
+
+            <el-menu-item-group title="程序结构度量">
+              <el-menu-item index="flowchart">
+                <el-icon><Share /></el-icon>
+                <span>程序流程图度量</span>
+              </el-menu-item>
+            </el-menu-item-group>
           </el-menu>
         </el-aside>
 
@@ -70,6 +77,8 @@
               <FpaHistory v-if="activeMenu === 'fpaHistory'" />
 
               <UcpAnalysis v-if="activeMenu === 'ucp'" />
+              
+              <FlowchartMetrics v-if="activeMenu === 'flowchart'" />
             </div>
           </el-main>
         </el-container>
@@ -84,7 +93,7 @@
 <script setup>
 import { ref, nextTick } from 'vue'
 // 导入 Element Plus 图标
-import { Document, Picture, Clock, PieChart, DataAnalysis } from '@element-plus/icons-vue'// === 【新增：引入 FPA 历史记录组件】 ===
+import { Document, Picture, Clock, PieChart, DataAnalysis, Share } from '@element-plus/icons-vue'// === 【新增：引入 FPA 历史记录组件】 ===
 import FpaHistory from './components/FpaHistory.vue'
 // 导入所有子组件
 import SplashScreen from './components/SplashScreen.vue'
@@ -93,6 +102,7 @@ import OomAnalysis from './components/OomAnalysis.vue'
 import HistoryRecords from './components/HistoryRecords.vue'
 import FpaAnalysis from './components/FpaAnalysis.vue' 
 import UcpAnalysis from './components/UcpAnalysis.vue'
+import FlowchartMetrics from './components/FlowchartMetrics.vue'
 // 状态控制
 import AiAssistant from './components/AiAssistant.vue'
 

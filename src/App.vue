@@ -75,6 +75,8 @@
         </el-container>
 
       </el-container>
+      
+    <AiAssistant />
     </div>
   </Transition>
 </template>
@@ -92,6 +94,8 @@ import HistoryRecords from './components/HistoryRecords.vue'
 import FpaAnalysis from './components/FpaAnalysis.vue' 
 import UcpAnalysis from './components/UcpAnalysis.vue'
 // 状态控制
+import AiAssistant from './components/AiAssistant.vue'
+
 const isAnimating = ref(true)    
 const activeMenu = ref('code') // 默认选中的菜单项
 const historyRef = ref(null)   

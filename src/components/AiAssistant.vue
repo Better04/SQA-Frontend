@@ -31,11 +31,10 @@
           </div>
 
           <div class="result-area" v-loading="isLoading" element-loading-text="AI正在深度分析中...">
-            <div v-if="!analysisResult && !isLoading" class="empty-state">
+            <div v-if="!rawAnalysisResult && !isLoading" class="empty-state">
               输入类名，获取 AI 智能度量与质量分析报告。
             </div>
-            <div v-if="analysisResult" class="markdown-result">
-              {{ analysisResult }}
+            <div v-if="rawAnalysisResult" class="markdown-result" v-html="renderedResult">
             </div>
           </div>
         </div>
@@ -44,16 +43,47 @@
   </div>
 </template>
 
+
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { MagicStick, Close, Search, Monitor } from '@element-plus/icons-vue'
+import { MagicStick, Close, Search } from '@element-plus/icons-vue'
+
+// 引入 Markdown 解析和代码高亮
+import MarkdownIt from 'markdown-it'
+import hljs from 'highlight.js'
+// 引入一款你喜欢的高亮主题，github-dark 比较契合你的暗色/科技感头部
+import 'highlight.js/styles/github-dark.css' 
 
 // 状态控制
 const isPanelOpen = ref(false)
 const classNameQuery = ref('')
-const analysisResult = ref('')
+const rawAnalysisResult = ref('') // 改为存储原始 Markdown 文本
 const isLoading = ref(false)
+
+// 配置 MarkdownIt
+const md = new MarkdownIt({
+  html: true,       // 允许 HTML 标签
+  linkify: true,    // 自动识别链接
+  typographer: true,// 优化排版替换
+  highlight: function (str, lang) {
+    // 处理代码块的高亮
+    if (lang && hljs.getLanguage(lang)) {
+      try {
+        return '<pre class="hljs"><code>' +
+               hljs.highlight(str, { language: lang, ignoreIllegals: true }).value +
+               '</code></pre>';
+      } catch (__) {}
+    }
+    return '<pre class="hljs"><code>' + md.utils.escapeHtml(str) + '</code></pre>';
+  }
+})
+
+// 使用计算属性实时转换 Markdown 为 HTML
+const renderedResult = computed(() => {
+  if (!rawAnalysisResult.value) return ''
+  return md.render(rawAnalysisResult.value)
+})
 
 // 切换面板显示/隐藏
 const togglePanel = () => {
@@ -68,15 +98,14 @@ const fetchAnalysis = async () => {
   }
 
   isLoading.value = true
-  analysisResult.value = '' // 清空历史结果
+  rawAnalysisResult.value = '' 
 
   try {
     const response = await fetch(`http://localhost:8080/api/analysis/className/${classNameQuery.value.trim()}`)
     
     if (response.ok) {
-      // 因为后端返回的是 String (可能包含中文和换行)，使用 text() 解析
       const textData = await response.text() 
-      analysisResult.value = textData
+      rawAnalysisResult.value = textData // 保存原始文本，计算属性会自动更新
       ElMessage.success('AI 分析完成')
     } else {
       ElMessage.error(`请求失败，状态码: ${response.status}`)
@@ -101,6 +130,9 @@ const fetchAnalysis = async () => {
 
 /* 悬浮按钮样式 */
 .floating-btn {
+  position: absolute; /* 新增：脱离文档流 */
+  bottom: 0;          /* 新增：锚定在容器底部 */
+  right: 0;
   width: 60px;
   height: 60px;
   background: linear-gradient(135deg, #38bdf8, #3b82f6);
@@ -119,6 +151,10 @@ const fetchAnalysis = async () => {
 
 /* AI 面板样式 (延续了你项目的亚克力/毛玻璃风格) */
 .ai-panel {
+  position: absolute; /* 新增：脱离文档流 */
+  bottom: 0;          /* 新增：锚定在容器底部 */
+  right: 0;           /* 新增：锚定在容器右侧 */
+  transform-origin: bottom right;
   width: 400px;
   height: 550px;
   background: rgba(255, 255, 255, 0.85);
@@ -188,14 +224,6 @@ const fetchAnalysis = async () => {
   font-size: 14px;
 }
 
-.markdown-result {
-  color: #334155;
-  font-size: 14px;
-  line-height: 1.6;
-  white-space: pre-wrap; /* 关键：保留后端的换行符并自动换行 */
-  word-wrap: break-word;
-}
-
 /* 动画效果 */
 .fade-slide-enter-active, .fade-slide-leave-active {
   transition: opacity 0.4s ease, transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
@@ -203,5 +231,84 @@ const fetchAnalysis = async () => {
 .fade-slide-enter-from, .fade-slide-leave-to {
   opacity: 0;
   transform: translateY(20px) scale(0.95);
+}
+
+/* 美化 Markdown 渲染结果 */
+.markdown-result {
+  color: #334155;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* 穿透修改动态生成的 HTML 标签 */
+:deep(.markdown-result) h1,
+:deep(.markdown-result) h2,
+:deep(.markdown-result) h3 {
+  color: #1e293b;
+  margin-top: 1.5em;
+  margin-bottom: 0.5em;
+  font-weight: 600;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 0.3em;
+}
+
+:deep(.markdown-result) p {
+  margin-bottom: 1em;
+}
+
+:deep(.markdown-result) ul,
+:deep(.markdown-result) ol {
+  padding-left: 20px;
+  margin-bottom: 1em;
+}
+
+:deep(.markdown-result) li {
+  margin-bottom: 0.25em;
+}
+
+/* 行内代码样式 */
+:deep(.markdown-result) code:not(.hljs) {
+  background-color: #f1f5f9;
+  color: #ef4444; /* 红色高亮行内代码 */
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: Consolas, Monaco, 'Courier New', monospace;
+  font-size: 0.9em;
+}
+
+/* 独立代码块容器样式 */
+:deep(.markdown-result) pre {
+  background-color: #1e293b; /* 与 highlight.js 的 github-dark 呼应 */
+  border-radius: 8px;
+  padding: 12px;
+  overflow-x: auto;
+  margin-bottom: 1em;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+:deep(.markdown-result) pre code {
+  font-family: Consolas, Monaco, 'Courier New', monospace;
+  font-size: 0.9em;
+  line-height: 1.5;
+}
+
+/* 表格美化（AI 分析可能返回类的度量数据表） */
+:deep(.markdown-result) table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 1em;
+  font-size: 0.95em;
+}
+
+:deep(.markdown-result) th,
+:deep(.markdown-result) td {
+  border: 1px solid #cbd5e1;
+  padding: 8px 12px;
+  text-align: left;
+}
+
+:deep(.markdown-result) th {
+  background-color: #f8fafc;
+  font-weight: 600;
 }
 </style>
